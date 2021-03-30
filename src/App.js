@@ -4,6 +4,10 @@ import React, { useState, useEffect }from "react";
 import './App.css'
 
 import ChatListItem from './components/ChatListItem'
+import ChatIntro from './components/ChatIntro'
+import ChatWindow from './components/ChatWindow'
+import NewChat from './components/NewChat'
+
 
 import DonutLargeIcon from '@material-ui/icons/DonutLarge';
 import ChatIcon from '@material-ui/icons/Chat';
@@ -12,19 +16,40 @@ import SearchIcon from '@material-ui/icons/Search';
 
 export default () => {
 
-  const [chatlist, setChatlList] = useState([{},{},{},{}])
+  const [chatlist, setChatlList] = useState([
+    {chatId: 1, title: 'Teste1', image: 'https://www.w3schools.com/howto/img_avatar.png'},
+    {chatId: 2, title: 'Teste2', image: 'https://www.w3schools.com/howto/img_avatar.png'},
+    {chatId: 3, title: 'Teste3', image: 'https://www.w3schools.com/howto/img_avatar.png'},
+    {chatId: 4, title: 'Teste4', image: 'https://www.w3schools.com/howto/img_avatar.png'},
+  ])
+  const [activeChat, setActiveChat] = useState({})
+  const [user, setUser] = useState({
+    id: 1234,
+    avatar: 'https://www.w3schools.com/howto/img_avatar.png',
+    name: 'Rafael Galdino'
+  })
+
+  const [showNewChat , setShowNewChat] = useState(false)
+  const handleNewChat = () =>{
+    setShowNewChat(true)
+  }
 
   return ( 
     <div className="app-window">
       <div className="part-esquerda">
-        
+        <NewChat 
+          chatlist={chatlist}
+          user={user}
+          show={showNewChat}
+          setShow={setShowNewChat}
+        />
       <header>
-        <img className="avatar--header" src="https://www.w3schools.com/howto/img_avatar.png"/>
+        <img className="avatar--header" src={user.avatar}/>
         <div className="header--buttons">
           <div className="header--btn">
             <DonutLargeIcon style={{color: '#919191'}} />
           </div>
-          <div className="header--btn">
+          <div onClick={handleNewChat} className="header--btn">
             <ChatIcon style={{color: '#919191'}} />
           </div>
           <div className="header--btn">
@@ -43,14 +68,26 @@ export default () => {
       <div className="chatlist">
         {chatlist.map((item, key) =>(
           <ChatListItem 
-            key={key} 
+            key={key}
+            data={item}
+            active={activeChat.chatId === chatlist[key].chatId}
+            onClick={() =>setActiveChat(chatlist[key])} 
           />
         ))}
       </div>
 
       </div>
       <div className="contentarea">
-       
+          {activeChat.chatId !== undefined &&
+            <ChatWindow 
+              user={user}
+            />
+          }
+          {activeChat.chatId === undefined &&
+            <ChatIntro />
+          }
+
+          <ChatIntro />
       </div>
     </div>
   );
