@@ -3,35 +3,52 @@
 import React, { useState, useEffect }from "react";
 import './App.css'
 
+import Api from './Api'
+
 import ChatListItem from './components/ChatListItem'
 import ChatIntro from './components/ChatIntro'
 import ChatWindow from './components/ChatWindow'
 import NewChat from './components/NewChat'
+import Login from './components/Login'
 
 
 import DonutLargeIcon from '@material-ui/icons/DonutLarge';
 import ChatIcon from '@material-ui/icons/Chat';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import SearchIcon from '@material-ui/icons/Search';
+import { unsupportedProp } from "@material-ui/core";
+
 
 export default () => {
 
-  const [chatlist, setChatlList] = useState([
-    {chatId: 1, title: 'Teste1', image: 'https://www.w3schools.com/howto/img_avatar.png'},
-    {chatId: 2, title: 'Teste2', image: 'https://www.w3schools.com/howto/img_avatar.png'},
-    {chatId: 3, title: 'Teste3', image: 'https://www.w3schools.com/howto/img_avatar.png'},
-    {chatId: 4, title: 'Teste4', image: 'https://www.w3schools.com/howto/img_avatar.png'},
-  ])
+  const [chatlist, setChatlList] = useState([])
   const [activeChat, setActiveChat] = useState({})
-  const [user, setUser] = useState({
-    id: 1234,
-    avatar: 'https://www.w3schools.com/howto/img_avatar.png',
-    name: 'Rafael Galdino'
-  })
-
+  const [user, setUser] = useState(null)
   const [showNewChat , setShowNewChat] = useState(false)
+
+  useEffect(()=>{
+    if(user !== null){
+      let unsub = Api.onChatList(user.id, setChatlList)
+      return unsub
+    }
+  },[user])
+
   const handleNewChat = () =>{
     setShowNewChat(true)
+  }
+  // Configuracao do Firebase 'usuario'
+  const handleLoginData = async (u) => {
+    let newUser = {
+      id: u.uid,
+      name: u.displayName,
+      avatar: u.photoURL,
+    }
+    await Api.addUser(newUser)
+    setUser(newUser)
+  }
+
+  if(user === null){
+    return(<Login  onReceive={handleLoginData} />)
   }
 
   return ( 
@@ -81,6 +98,7 @@ export default () => {
           {activeChat.chatId !== undefined &&
             <ChatWindow 
               user={user}
+              data={activeChat}
             />
           }
           {activeChat.chatId === undefined &&

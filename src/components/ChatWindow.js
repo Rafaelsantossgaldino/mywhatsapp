@@ -5,6 +5,7 @@ import EmojiPicker from 'emoji-picker-react';
 import './ChatWindow.css'
 
 import MessageItem from './MessageItem'
+import Api from '../Api'
 
 import SearchIcon from '@material-ui/icons/Search';
 import AttachFileIcon from '@material-ui/icons/AttachFile';
@@ -15,7 +16,7 @@ import SendIcon from '@material-ui/icons/Send';
 import MicIcon from '@material-ui/icons/Mic';
 
 
-export default ({user})=>{
+export default ({user, data})=>{
 
     const body = useRef()
 
@@ -28,30 +29,18 @@ export default ({user})=>{
     const [emojiOpen, setEmojiOpen] = useState(false)
     const [text, setText] = useState('')
     const [listening, setListening] = useState(false)
-    const [list, setList] = useState([
-        {author: 123, body: 'bla bla blA'},
-        {author: 123, body: 'bla blA'},
-        {author: 1234, body: 'bla bla blA BLA'},
-        {author: 123, body: 'bla bla blA'},
-        {author: 123, body: 'bla blA'},
-        {author: 1234, body: 'bla bla blA BLA'},
-        {author: 123, body: 'bla bla blA'},
-        {author: 123, body: 'bla blA'},
-        {author: 1234, body: 'bla bla blA BLA'},
-        {author: 123, body: 'bla bla blA'},
-        {author: 123, body: 'bla blA'},
-        {author: 1234, body: 'bla bla blA BLA'},
-        {author: 123, body: 'bla bla blA'},
-        {author: 123, body: 'bla blA'},
-        {author: 1234, body: 'bla bla blA BLA'},
-        {author: 123, body: 'bla bla blA'},
-        {author: 123, body: 'bla blA'},
-        {author: 1234, body: 'bla bla blA BLA'},
-    ])
+    const [list, setList] = useState([])
+    const [users, setUsers] = useState([])
+
+    useEffect(()=>{
+        setList([])
+        let unsub = Api.onChatContent(data.chatId, setList, setUsers)
+        return unsub
+    },[data.chatId])
 
     useEffect(()=>{
         if(body.current.scrollHeight > body.current.offsetHeight){
-            body.current.scrolltop = body.current.scrollHeight - body.current.offsetHeight
+            body.current.scrollTop = body.current.scrollHeight - body.current.offsetHeight
         }
     }, [list])
 
@@ -86,8 +75,18 @@ export default ({user})=>{
         }
     }
 
-    const handleSendClick = ()=>{
+    const handleInputKeyUp = (e)=>{
+        if(e.keyCode == 13){
+            handleSendClick()
+        }
+    }
 
+    const handleSendClick = ()=>{
+        if(text !== ''){
+            Api.sendMessage(data, user.id, 'text', text, users)
+            setText('')
+            setEmojiOpen(false)
+        }
     }
 
     return (
@@ -95,8 +94,8 @@ export default ({user})=>{
             <div className="chatWindow--header">
 
                 <div className="chatWindow--headerinfo">
-                    <img className="chatWindow--avatar" src="https://www.w3schools.com/howto/img_avatar.png" />
-                    <div className="chatWindow--name">Rafael Galdino</div>
+                    <img className="chatWindow--avatar" src={data.image} />
+                    <div className="chatWindow--name">{data.title}</div>
                 </div>
 
                 <div className="chatWindow--headerbuttons">
@@ -159,6 +158,7 @@ export default ({user})=>{
                     placeholder="Digite uma mensagem "
                     value={text}
                     onChange={e=>setText(e.target.value)}
+                    onKeyUp={handleInputKeyUp}
                 />
                 </div>
                 <div className="chatWindow--pos">
@@ -174,8 +174,6 @@ export default ({user})=>{
                             <SendIcon style={{color: '#919191'}}/>
                         </div>
                     }
-
-
                 </div>
 
             </div>
